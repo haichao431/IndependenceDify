@@ -1,0 +1,15 @@
+version: '3.9'
+services:
+  reids:
+    image: redis:6-alpine
+    container_name: reids 
+    restart: unless-stopped
+    tty: true
+    network_mode: bridge 
+    command: redis-server --requirepass 123456 # 启动命令，并设置密码为123456
+    ports:
+      - 6379:6379 # 映射端口
+    volumes:
+      - /share/Container/redis/data:/data #挂载数据文件
+    ealthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
