@@ -1,0 +1,154 @@
+version: '3.9'
+services:
+  # API 服务
+  api:
+    image: langgenius/dify-api:0.5.1
+    restart: unless-stopped
+    container_name: dify-api
+    network_mode: bridge
+    environment:
+      # 启动模式：api
+      MODE: api
+      TZ: Asia/Shanghai
+      # 代理服务，如果你的网络访问openai没问题，则把下面三个环境变量删掉。
+      ALL_PROXY: http://192.168.31.20:7890
+      HTTP_PROXY: http://192.168.31.20:7890
+      NO_PROXY: localhost,127.0.0.1,172.17.0.1,192.168.31.91,192.168.31.90
+      LOG_LEVEL: INFO
+      # 用来对敏感信息签名或加密的密钥，建议修改一下
+      SECRET_KEY: sSj7H0VwBdvf2S9Fn9Pm72agkER5lLXz2D4yANp0ZJQKCdnCHyJu9AMk
+      # 如果你的web域名和api域名不一样的话可以设置下，笔者建议把两个域名保持一致，留空
+      CONSOLE_WEB_URL: ''
+      # 如果你的web域名和api域名不一样的话可以设置下，笔者建议把两个域名保持一致，留空
+      CONSOLE_API_URL: ''
+      # 这个是你在Dify中创建好一个应用，外部API调用时使用的域名，建议设置好
+      SERVICE_API_URL: 'https://dify.yourdomain.fun'
+      # 这个是你在Dify中创建好一个应用，分享链接打开网页时使用的域名，建议设置好
+      APP_WEB_URL: 'https://dify.yourdomain.fun'
+      # 预览或下载文件时使用的域名，建议设置好
+      FILES_URL: 'https://dify.yourdomain.fun'
+      MIGRATION_ENABLED: 'true'
+      # postgres数据库用户名
+      DB_USERNAME: username
+      # postgres数据库密码
+      DB_PASSWORD: password
+      # postgres 地址
+      DB_HOST: 192.168.31.91
+      # postgres端口
+      DB_PORT: 5432
+      # postgres数据库名称
+      DB_DATABASE: dify
+      # Redis地址
+      REDIS_HOST: 192.168.31.91
+      # Redis端口
+      REDIS_PORT: 6379
+      REDIS_USERNAME: ''
+      # Redis密码
+      REDIS_PASSWORD: 123456
+      REDIS_USE_SSL: 'false'
+      REDIS_DB: 0
+      # 参考Redis信息进行填写，例子：redis://:<REDIS_PASSWORD>@<REDIS_HOST>:<REDIS_PORT>/1
+      CELERY_BROKER_URL: redis://:123456@192.168.31.91:6379/1
+      WEB_API_CORS_ALLOW_ORIGINS: '*'
+      CONSOLE_CORS_ALLOW_ORIGINS: '*'
+      STORAGE_TYPE: local
+      STORAGE_LOCAL_PATH: storage
+      # 向量数据库的类型
+      VECTOR_STORE: weaviate
+      # weaviate地址
+      WEAVIATE_ENDPOINT: http://192.168.31.91:9080
+      # weaviate密钥，部署weaviate时提到过
+      WEAVIATE_API_KEY: WVF5YThaflkYghGUSmCRgTa3tD3ngdN8pkih
+      MAIL_TYPE: ''
+      RESEND_API_KEY: ''
+      RESEND_API_URL: https://api.resend.com
+      SENTRY_DSN: ''
+      SENTRY_TRACES_SAMPLE_RATE: 1.0
+      SENTRY_PROFILES_SAMPLE_RATE: 1.0
+    volumes:
+       # 挂载数据文件
+      - /share/Container/dify/app/storage:/app/api/storage
+    ports:
+       # 映射的端口
+      - "5001:5001"
+
+  # worker 服务，用于处理消息队列作业，环境变量与API模式完全相同
+  worker:
+    image: langgenius/dify-api:0.5.1
+    container_name: dify-worker
+    restart: unless-stopped
+    network_mode: bridge
+    environment:
+      # 启动模式：worker
+      MODE: worker
+      TZ: Asia/Shanghai
+      # 代理服务，如果你的网络访问openai没问题，则把下面三个环境变量删掉。
+      ALL_PROXY: http://192.168.31.20:7890
+      HTTP_PROXY: http://192.168.31.20:7890
+      NO_PROXY: localhost,127.0.0.1,172.17.0.1,192.168.31.91,192.168.31.90
+      LOG_LEVEL: INFO
+      # 用来对敏感信息签名或加密的密钥，建议修改一下
+      SECRET_KEY: sSj7H0VwBdvf2S9Fn9Pm72agkER5lLXz2D4yANp0ZJQKCdnCHyJu9AMk
+      MIGRATION_ENABLED: 'true'
+      # postgres数据库用户名
+      DB_USERNAME: username
+      # postgres数据库密码
+      DB_PASSWORD: password
+      # postgres 地址
+      DB_HOST: 192.168.31.91
+      # postgres端口
+      DB_PORT: 5432
+      # postgres数据库名称
+      DB_DATABASE: dify
+      # Redis地址
+      REDIS_HOST: 192.168.31.91
+      # Redis端口
+      REDIS_PORT: 6379
+      REDIS_USERNAME: ''
+      # Redis密码
+      REDIS_PASSWORD: 123456
+      REDIS_USE_SSL: 'false'
+      REDIS_DB: 0
+      # 参考Redis信息进行填写，例子：redis://:<REDIS_PASSWORD>@<REDIS_HOST>:<REDIS_PORT>/1
+      CELERY_BROKER_URL: redis://:123456@192.168.31.91:6379/1
+      WEB_API_CORS_ALLOW_ORIGINS: '*'
+      CONSOLE_CORS_ALLOW_ORIGINS: '*'
+      STORAGE_TYPE: local
+      STORAGE_LOCAL_PATH: storage
+      # 向量数据库的类型
+      VECTOR_STORE: weaviate
+      # weaviate地址
+      WEAVIATE_ENDPOINT: http://192.168.31.91:9080
+      # weaviate密钥，部署weaviate时提到过
+      WEAVIATE_API_KEY: WVF5YThaflkYghGUSmCRgTa3tD3ngdN8pkih
+      MAIL_TYPE: ''
+      # default send from email address, if not specified
+      MAIL_DEFAULT_SEND_FROM: 'youmail@gmail.com'
+      # the api-key for resend (https://resend.com)
+      RESEND_API_KEY: ''
+      RESEND_API_URL: https://api.resend.com
+    volumes:
+       # 挂载数据文件
+      - /share/Container/dify/app/storage:/app/api/storage
+
+  # Web管理服务
+  web:
+    image: langgenius/dify-web:0.5.1
+    container_name: dify-web
+    restart: unless-stopped
+    network_mode: bridge
+    environment:
+      # 自部署版本，其实还有个CLOUD版本（云端，类似Saas版），二者对团队/租户、登录方式、试用功能有些区别
+      EDITION: SELF_HOSTED
+      TZ: Asia/Shanghai
+      ALL_PROXY: http://192.168.31.20:7890
+      HTTP_PROXY: http://192.168.31.20:7890
+      NO_PROXY: localhost,127.0.0.1,172.17.0.1,192.168.31.91,192.168.31.90
+      # API服务的域名，笔者这边把api和web服务的域名都设置为同一个了
+      CONSOLE_API_URL: 'https://dify.yourdomain.fun'
+       # Web服务的域名，笔者这边把api和web服务的域名都设置为同一个了
+      APP_API_URL: 'https://dify.yourdomain.fun'
+      SENTRY_DSN: ''
+    ports:
+     # 映射的端口
+      - "3000:3000"
